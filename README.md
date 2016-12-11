@@ -17,3 +17,24 @@
 - Use wrapdb to find rang dependency
 - Place this code inside your primary `meson.build` - `rang_dep = dependency('rang', fallback : ['rang', 'rang_dep'])`
 - Make sure to include `rang_dep` as dependency wherever you need it.
+
+#### Using Conan package manager
+- search for rang package or goto - https://conan.io/source/rang/2.0/agauniyal/stable
+- install the latest release - `conan install rang/2.0@agauniyal/stable`
+- setup your **conanfile.txt** with - 
+```
+[requires]
+rang/2.0@agauniyal/stable
+
+...
+```
+and **CMakeLists.txt** with -
+```
+INCLUDE(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+CONAN_BASIC_SETUP()
+
+ADD_EXECUTABLE(executable_name main.cpp)
+TARGET_LINK_LIBRARIES(executable_name ${CONAN_LIBS})
+```
+- create build directory - `mkdir build && cd build`
+- install package and build - `conan install .. && cmake .. && make`
