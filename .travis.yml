@@ -92,6 +92,7 @@ script:
   - cmake --build .
   - ./bin/vTest
   - ./bin/runTest
+  - ./bin/allColors
 
 after_script:
   - cmake --build . --target coveralls

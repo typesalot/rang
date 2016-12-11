@@ -14,22 +14,19 @@
 #if defined(OS_LINUX) || defined(OS_MAC)
 #include <unistd.h>
 #elif defined(OS_WIN)
+#include <windows.h>
 #include <io.h>
+#include <VersionHelpers.h>
 #endif
 
 #include <algorithm>
 #include <cstdlib>
+#include <ios>
 #include <iostream>
 #include <iterator>
 #include <type_traits>
 
 namespace rang {
-
-namespace {
-	std::streambuf const *RANG_coutbuf = std::cout.rdbuf();
-	std::streambuf const *RANG_cerrbuf = std::cerr.rdbuf();
-	std::streambuf const *RANG_clogbuf = std::clog.rdbuf();
-}
 
 enum class style {
 	reset     = 0,
@@ -87,73 +84,205 @@ enum class bgB {
 	gray    = 107
 };
 
-inline bool supportsColor()
-{
+enum class control { autoColor = 0, forceColor = 1 };
+
+
+namespace rang_implementation {
+
+	inline std::streambuf const *&RANG_coutbuf()
+	{
+		static std::streambuf const *pOutbuff = std::cout.rdbuf();
+		return pOutbuff;
+	}
+
+	inline std::streambuf const *&RANG_cerrbuf()
+	{
+		static std::streambuf const *pErrbuff = std::cerr.rdbuf();
+		return pErrbuff;
+	}
+
+	inline std::streambuf const *&RANG_clogbuf()
+	{
+		static std::streambuf const *pLogbuff = std::clog.rdbuf();
+		return pLogbuff;
+	}
+
+	inline int getIword()
+	{
+		static int i = std::ios_base::xalloc();
+		return i;
+	}
+
+
+	inline bool supportsColor()
+	{
 
 #if defined(OS_LINUX) || defined(OS_MAC)
-	const std::string Terms[] =
-		{
+		const std::string Terms[] = {
 			"ansi", "color", "console", "cygwin", "gnome", "konsole", "kterm",
 			"linux", "msys", "putty", "rxvt", "screen", "vt100", "xterm"
 		};
 
-	const char *env_p = std::getenv("TERM");
-	if (env_p == nullptr) {
+		const char *env_p = std::getenv("TERM");
+		if (env_p == nullptr) {
+			return false;
+		}
+
+		std::string env_string(env_p);
+		static const bool result = std::any_of(
+		  std::begin(Terms), std::end(Terms), [&](std::string term) {
+			  return env_string.find(term) != std::string::npos;
+		  });
+
+#elif defined(OS_WIN)
+		static const bool result = true;
+#endif
+		return result;
+	}
+
+
+	inline bool isTerminal(const std::streambuf *osbuf)
+	{
+		if (osbuf == RANG_coutbuf()) {
+#if defined(OS_LINUX) || defined(OS_MAC)
+			return isatty(fileno(stdout)) ? true : false;
+#elif defined(OS_WIN)
+			return _isatty(_fileno(stdout)) ? true : false;
+#endif
+		}
+
+		if (osbuf == RANG_cerrbuf() || osbuf == RANG_clogbuf()) {
+#if defined(OS_LINUX) || defined(OS_MAC)
+			return isatty(fileno(stderr)) ? true : false;
+#elif defined(OS_WIN)
+			return _isatty(_fileno(stderr)) ? true : false;
+#endif
+		}
 		return false;
 	}
 
-	std::string env_string(env_p);
-	static const bool result = std::any_of(std::begin(Terms), std::end(Terms),
-		[&](std::string term) {
-			return env_string.find(term) != std::string::npos;
-		});
 
-#elif defined(OS_WIN)
-	static const bool result = true;
+	template <typename T>
+	using enableStd =
+	  typename std::enable_if<std::is_same<T, rang::style>::value
+	      || std::is_same<T, rang::fg>::value
+	      || std::is_same<T, rang::bg>::value
+	      || std::is_same<T, rang::fgB>::value
+	      || std::is_same<T, rang::bgB>::value,
+	    std::ostream &>::type;
+
+
+#ifdef OS_WIN
+	HANDLE getVersionDependentHandle()
+	{
+		if (IsWindowsVersionOrGreater(10, 0, 0)) return nullptr;
+		return GetStdHandle(STD_OUTPUT_HANDLE);
+	}
+
+	inline HANDLE getConsoleHandle()
+	{
+		static HANDLE h = getVersionDependentHandle();
+		return h;
+	}
+
+	inline WORD reverseRGB(WORD rgb)
+	{
+		static const WORD rev[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
+		return rev[rgb];
+	}
+
+	inline void setWinAttribute(rang::bg col, WORD &state)
+	{
+		state &= 0xFF0F;
+		state |= reverseRGB(static_cast<WORD>(col) - 40) << 4;
+	}
+
+	inline void setWinAttribute(rang::fg col, WORD &state)
+	{
+		state &= 0xFFF0;
+		state |= reverseRGB(static_cast<WORD>(col) - 30);
+	}
+
+	inline void setWinAttribute(rang::bgB col, WORD &state)
+	{
+		state &= 0xFF0F;
+		state |= (0x8 | reverseRGB(static_cast<WORD>(col) - 100)) << 4;
+	}
+
+	inline void setWinAttribute(rang::fgB col, WORD &state)
+	{
+		state &= 0xFFF0;
+		state |= (0x8 | reverseRGB(static_cast<WORD>(col) - 90));
+	}
+
+	inline void setWinAttribute(rang::style style, WORD &state)
+	{
+		if (style == rang::style::reset) {
+			state = (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+		}
+	}
+
+	inline WORD &current_state()
+	{
+		static WORD state
+		  = (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+		return state;
+	}
+
+	template <typename T>
+	inline enableStd<T> setColor(std::ostream &os, T const value)
+	{
+		HANDLE h = getConsoleHandle();
+		if (h && isTerminal(os.rdbuf())) {
+			setWinAttribute(value, current_state());
+			SetConsoleTextAttribute(h, current_state());
+			return os;
+		}
+		return os << "\033[" << static_cast<int>(value) << "m";
+	}
+#else
+	template <typename T>
+	inline enableStd<T> setColor(std::ostream &os, T const value)
+	{
+		return os << "\033[" << static_cast<int>(value) << "m";
+	}
 #endif
 
-	return result;
+	template <typename T>
+	using enableControl =
+	  typename std::enable_if<std::is_same<T, rang::control>::value,
+	    std::ostream &>::type;
 }
 
-inline bool isTerminal(const std::streambuf *osbuf)
+void init()
 {
-	if (osbuf == RANG_coutbuf) {
-#if defined(OS_LINUX) || defined(OS_MAC)
-		return isatty(fileno(stdout)) ? true : false;
-#elif defined(OS_WIN)
-		return _isatty(_fileno(stdout)) ? true : false;
-#endif
-	}
-
-	if (osbuf == RANG_cerrbuf || osbuf == RANG_clogbuf) {
-#if defined(OS_LINUX) || defined(OS_MAC)
-		return isatty(fileno(stderr)) ? true : false;
-#elif defined(OS_WIN)
-		return _isatty(_fileno(stderr)) ? true : false;
-#endif
-	}
-	return false;
+	rang_implementation::RANG_coutbuf();
+	rang_implementation::RANG_cerrbuf();
+	rang_implementation::RANG_clogbuf();
 }
 
-
 template <typename T>
-using enable = typename std::enable_if
-	<
-		std::is_same<T, rang::style>::value ||
-		std::is_same<T, rang::fg>::value ||
-		std::is_same<T, rang::bg>::value ||
-		std::is_same<T, rang::fgB>::value ||
-		std::is_same<T, rang::bgB>::value,
-		std::ostream&
-	>::type;
-
-template <typename T>
-inline enable<T> operator<<(std::ostream &os, T const value)
+inline rang_implementation::enableStd<T> operator<<(
+  std::ostream &os, T const value)
 {
 	std::streambuf const *osbuf = os.rdbuf();
-	return ((supportsColor()) && (isTerminal(osbuf)))
-	  ? os << "\033[" << static_cast<int>(value) << "m"
+	return (os.iword(rang_implementation::getIword())
+	         || ((rang_implementation::supportsColor())
+	         && (rang_implementation::isTerminal(osbuf))))
+	  ? rang_implementation::setColor(os, value)
 	  : os;
+}
+
+template <typename T>
+inline rang_implementation::enableControl<T> operator<<(
+  std::ostream &os, T const value)
+{
+	if (value == rang::control::forceColor) {
+		os.iword(rang_implementation::getIword()) = 1;
+	} else if (value == rang::control::autoColor) {
+		os.iword(rang_implementation::getIword()) = 0;
+	}
+	return os;
 }
 }
 

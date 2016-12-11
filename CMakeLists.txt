@@ -36,5 +36,6 @@ set(CATCH_HEADER_PATH ${PROJECT_SOURCE_DIR}/test/catch.hpp)
 
 add_executable(vTest ${PROJECT_SOURCE_DIR}/test/visualTest.cpp)
 add_executable(runTest ${PROJECT_SOURCE_DIR}/test/test.cpp ${CATCH_HEADER_PATH})
+add_executable(allColors ${PROJECT_SOURCE_DIR}/test/colortest.cpp)
 
 add_test(RTEST ${CMAKE_BINARY_DIR}/bin/runTest)
