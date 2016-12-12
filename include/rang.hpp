@@ -49,7 +49,8 @@ enum class fg {
 	blue    = 34,
 	magenta = 35,
 	cyan    = 36,
-	gray    = 37
+	gray    = 37,
+	reset   = 39
 };
 
 enum class bg {
@@ -60,7 +61,8 @@ enum class bg {
 	blue    = 44,
 	magenta = 45,
 	cyan    = 46,
-	gray    = 47
+	gray    = 47,
+	reset   = 49
 };
 
 enum class fgB {
