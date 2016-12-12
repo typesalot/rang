@@ -17,7 +17,7 @@ init:
 before_build:
   - cmd: mkdir build
   - cmd: cd build
-  - cmd: cmake ..
+  - cmd: cmake -DBUILD_TESTING=ON ..
   - cmd: cd ../
 
 test_script:
