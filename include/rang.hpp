@@ -13,6 +13,7 @@
 
 #if defined(OS_LINUX) || defined(OS_MAC)
 #include <unistd.h>
+#include <cstring>
 #elif defined(OS_WIN)
 #include <windows.h>
 #include <io.h>
@@ -116,9 +117,8 @@ namespace rang_implementation {
 
 	inline bool supportsColor()
 	{
-
 #if defined(OS_LINUX) || defined(OS_MAC)
-		const std::string Terms[] = {
+		static constexpr const char* Terms[] = {
 			"ansi", "color", "console", "cygwin", "gnome", "konsole", "kterm",
 			"linux", "msys", "putty", "rxvt", "screen", "vt100", "xterm"
 		};
@@ -128,14 +128,13 @@ namespace rang_implementation {
 			return false;
 		}
 
-		std::string env_string(env_p);
 		static const bool result = std::any_of(
-		  std::begin(Terms), std::end(Terms), [&](std::string term) {
-			  return env_string.find(term) != std::string::npos;
+		  std::begin(Terms), std::end(Terms), [&](const char* term) {
+			  return std::strstr(env_p, term) != nullptr;
 		  });
 
 #elif defined(OS_WIN)
-		static const bool result = true;
+		static constexpr bool result = true;
 #endif
 		return result;
 	}
