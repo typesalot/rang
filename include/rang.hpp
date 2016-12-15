@@ -36,9 +36,10 @@ enum class style {
 	italic    = 3,
 	underline = 4,
 	blink     = 5,
-	reversed  = 6,
-	conceal   = 7,
-	crossed   = 8
+	rblink    = 6,
+	reversed  = 7,
+	conceal   = 8,
+	crossed   = 9
 };
 
 enum class fg {
