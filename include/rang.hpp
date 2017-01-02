@@ -256,7 +256,7 @@ namespace rang_implementation {
 	    std::ostream &>::type;
 }
 
-void init()
+inline void init()
 {
 	rang_implementation::RANG_coutbuf();
 	rang_implementation::RANG_cerrbuf();
