@@ -175,7 +175,7 @@ namespace rang_implementation {
 
 
 #ifdef OS_WIN
-	HANDLE getVersionDependentHandle()
+	inline HANDLE getVersionDependentHandle()
 	{
 		if (IsWindowsVersionOrGreater(10, 0, 0)) return nullptr;
 		return GetStdHandle(STD_OUTPUT_HANDLE);
