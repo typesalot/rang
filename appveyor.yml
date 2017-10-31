@@ -2,28 +2,45 @@ version: 2.0.{build}
 
 skip_tags: true
 
-os:
-  - Windows Server 2012 R2
-  - MinGW
-  - Visual Studio 2015
+environment:
+  matrix:
+  # MSVC
+  - GENERATOR: Visual Studio 15 2017 Win64
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+  - GENERATOR: Visual Studio 14 2015 Win64
+
+  # Mingw-w64
+  - GENERATOR: MinGW Makefiles
+    CC: gcc
+    CXX: g++
+
+  # Clang targeting mingw-w64
+  - GENERATOR: MinGW Makefiles
+    CC: clang --target=x86_64-w64-mingw32
+    CXX: clang++ --target=x86_64-w64-mingw32
 
 build:
   parallel: true
   verbosity: minimal
 
 init:
-  - cmd: cmake --version
+  - cmake --version
 
 before_build:
-  - cmd: mkdir build
-  - cmd: cd build
-  - cmd: cmake -DBUILD_TESTING=ON ..
-  - cmd: cd ../
+  # Workaround for CMake not wanting sh.exe on PATH for MinGW Makefiles
+  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
+  - set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin;%PATH%
+  - mkdir build
+  - cd build
+  - cmake -G "%GENERATOR%" -DBUILD_TESTING=ON ..
+
+build_script:
+  - if "%GENERATOR%" == "MinGW Makefiles" ( mingw32-make VERBOSE=1 ) else ( cmake --build . --config Debug )
 
 test_script:
-  - cmd: cd build\bin\Debug
-  - cmd: runTest.exe
-  - cmd: vTest.exe
-  - cmd: allColors.exe
+  - if "%GENERATOR%" == "MinGW Makefiles" ( cd bin ) else ( cd bin\Debug )
+  - runTest.exe
+  - vTest.exe
+  - allColors.exe
 
 deploy: off
