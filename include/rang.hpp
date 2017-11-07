@@ -117,7 +117,6 @@ namespace rang_implementation {
 		return i;
 	}
 
-
 	inline bool supportsColor()
 	{
 #if defined(OS_LINUX) || defined(OS_MAC)
@@ -137,7 +136,11 @@ namespace rang_implementation {
 		  });
 
 #elif defined(OS_WIN)
-		static constexpr bool result = true;
+		static const bool result = []()->bool{
+			DWORD dwVersion = GetVersion();
+			WORD  wMajorVersion = LOBYTE(LOWORD(dwVersion));
+			return (wMajorVersion >= 5) ? true : false;
+		}();
 #endif
 		return result;
 	}
@@ -146,19 +149,23 @@ namespace rang_implementation {
 	inline bool isTerminal(const std::streambuf *osbuf)
 	{
 		if (osbuf == RANG_coutbuf()) {
+			static const bool isCoutTty =
 #if defined(OS_LINUX) || defined(OS_MAC)
-			return isatty(fileno(stdout)) ? true : false;
+			isatty(fileno(stdout)) ? true : false;
 #elif defined(OS_WIN)
-			return _isatty(_fileno(stdout)) ? true : false;
+			_isatty(_fileno(stdout)) ? true : false;
 #endif
+			return isCoutTty;
 		}
 
 		if (osbuf == RANG_cerrbuf() || osbuf == RANG_clogbuf()) {
+			static const bool isCerrTty =
 #if defined(OS_LINUX) || defined(OS_MAC)
-			return isatty(fileno(stderr)) ? true : false;
+			isatty(fileno(stderr)) ? true : false;
 #elif defined(OS_WIN)
-			return _isatty(_fileno(stderr)) ? true : false;
+			_isatty(_fileno(stderr)) ? true : false;
 #endif
+			return isCerrTty;
 		}
 		return false;
 	}
@@ -175,16 +182,45 @@ namespace rang_implementation {
 
 
 #ifdef OS_WIN
-	inline HANDLE getVersionDependentHandle()
-	{
-		if (IsWindowsVersionOrGreater(10, 0, 0)) return nullptr;
-		return GetStdHandle(STD_OUTPUT_HANDLE);
-	}
 
 	inline HANDLE getConsoleHandle()
 	{
-		static HANDLE h = getVersionDependentHandle();
+		static HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 		return h;
+	}
+
+	inline bool setWinTermAnsiColors()
+	{
+		HANDLE h = getConsoleHandle();
+		if(h == INVALID_HANDLE_VALUE)
+			return false;
+		if (IsWindowsVersionOrGreater(10, 0, 0)) {
+			DWORD dwMode = 0;
+			if(!GetConsoleMode(h, &dwMode))
+				return false;
+			dwMode |= 0x07;
+			if(!SetConsoleMode(h, dwMode))
+				return false;
+			return true;
+		}
+		return false;
+	}
+
+	inline bool supportsAnsi()
+	{
+		static bool f = setWinTermAnsiColors();
+		return f;
+	}
+
+	inline WORD defaultState()
+	{
+		static WORD defaultAttributes = []()->WORD{
+			CONSOLE_SCREEN_BUFFER_INFO info;
+			if (!GetConsoleScreenBufferInfo(getConsoleHandle(), &info))
+				return (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+			return info.wAttributes;
+		}();
+		return defaultAttributes;
 	}
 
 	inline WORD reverseRGB(WORD rgb)
@@ -196,13 +232,19 @@ namespace rang_implementation {
 	inline void setWinAttribute(rang::bg col, WORD &state)
 	{
 		state &= 0xFF0F;
-		state |= reverseRGB(static_cast<WORD>(col) - 40) << 4;
+		if(col != rang::bg::reset)
+			state |= reverseRGB(static_cast<WORD>(col) - 40) << 4;
+		else
+			state |= (defaultState() & 0xF0);
 	}
 
 	inline void setWinAttribute(rang::fg col, WORD &state)
 	{
 		state &= 0xFFF0;
-		state |= reverseRGB(static_cast<WORD>(col) - 30);
+		if(col != rang::fg::reset)
+			state |= reverseRGB(static_cast<WORD>(col) - 30);
+		else
+			state |= (defaultState() & 0x0F);
 	}
 
 	inline void setWinAttribute(rang::bgB col, WORD &state)
@@ -220,25 +262,26 @@ namespace rang_implementation {
 	inline void setWinAttribute(rang::style style, WORD &state)
 	{
 		if (style == rang::style::reset) {
-			state = (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+			state = defaultState();
 		}
 	}
 
 	inline WORD &current_state()
 	{
-		static WORD state
-		  = (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+		static WORD state = defaultState();
 		return state;
 	}
 
 	template <typename T>
 	inline enableStd<T> setColor(std::ostream &os, T const value)
 	{
-		HANDLE h = getConsoleHandle();
-		if (h && isTerminal(os.rdbuf())) {
-			setWinAttribute(value, current_state());
-			SetConsoleTextAttribute(h, current_state());
-			return os;
+		if(!supportsAnsi()) {
+			HANDLE h = getConsoleHandle();
+			if (h != INVALID_HANDLE_VALUE && isTerminal(os.rdbuf())) {
+				setWinAttribute(value, current_state());
+				SetConsoleTextAttribute(h, current_state());
+				return os;
+			}
 		}
 		return os << "\033[" << static_cast<int>(value) << "m";
 	}
