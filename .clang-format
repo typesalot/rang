@@ -1,7 +1,7 @@
 ---
 Language:        Cpp
 AccessModifierOffset: -4
-AlignAfterOpenBracket: DontAlign
+AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlinesLeft: false
@@ -16,7 +16,7 @@ AllowShortLoopsOnASingleLine: true
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: false
+AlwaysBreakTemplateDeclarations: true
 BinPackArguments: true
 BinPackParameters: true
 BreakBeforeBinaryOperators: All
@@ -53,5 +53,5 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 Standard:        Cpp11
 TabWidth:        4
-UseTab:          ForIndentation
+UseTab:          Never
 ...
