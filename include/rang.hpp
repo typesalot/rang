@@ -109,20 +109,23 @@ namespace rang_implementation {
     inline bool supportsColor() noexcept
     {
 #if defined(OS_LINUX) || defined(OS_MAC)
-        static constexpr const char *Terms[]
-          = { "ansi",    "color",  "console", "cygwin", "gnome",
-              "konsole", "kterm",  "linux",   "msys",   "putty",
-              "rxvt",    "screen", "vt100",   "xterm" };
 
-        static const char *env_p = std::getenv("TERM");
-        if (env_p == nullptr) {
-            return false;
-        }
+        static const bool result = [] {
+            const char *Terms[]
+              = { "ansi",    "color",  "console", "cygwin", "gnome",
+                  "konsole", "kterm",  "linux",   "msys",   "putty",
+                  "rxvt",    "screen", "vt100",   "xterm" };
 
-        static const bool result = std::any_of(
-          std::begin(Terms), std::end(Terms), [&](const char *term) {
-              return std::strstr(env_p, term) != nullptr;
-          });
+            const char *env_p = std::getenv("TERM");
+            if (env_p == nullptr) {
+                return false;
+            } else {
+                return std::any_of(
+                  std::begin(Terms), std::end(Terms), [&](const char *term) {
+                      return std::strstr(env_p, term) != nullptr;
+                  });
+            }
+        }();
 
 #elif defined(OS_WIN)
         static const bool result = [] {
@@ -206,7 +209,7 @@ namespace rang_implementation {
 
     inline WORD defaultState() noexcept
     {
-        static WORD defaultAttributes = [] {
+        static const WORD defaultAttributes = [] {
             CONSOLE_SCREEN_BUFFER_INFO info;
             if (!GetConsoleScreenBufferInfo(getConsoleHandle(), &info))
                 return (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
@@ -272,7 +275,7 @@ namespace rang_implementation {
         if (supportsAnsi()) {
             return os << "\033[" << static_cast<int>(value) << "m";
         } else {
-            HANDLE h = getConsoleHandle();
+            const HANDLE h = getConsoleHandle();
             if (h != INVALID_HANDLE_VALUE && isTerminal(os.rdbuf())) {
                 setWinAttribute(value, current_state());
                 SetConsoleTextAttribute(h, current_state());

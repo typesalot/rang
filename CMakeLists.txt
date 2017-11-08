@@ -32,11 +32,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 enable_testing()
 
 include_directories(include)
-set(CATCH_HEADER_PATH ${PROJECT_SOURCE_DIR}/test/catch.hpp)
+set(DOCTEST_HEADER_PATH ${PROJECT_SOURCE_DIR}/test/doctest.h)
 
 if(BUILD_TESTING)
     add_executable(vTest ${PROJECT_SOURCE_DIR}/test/visualTest.cpp)
-    add_executable(runTest ${PROJECT_SOURCE_DIR}/test/test.cpp ${CATCH_HEADER_PATH})
+    add_executable(runTest ${PROJECT_SOURCE_DIR}/test/test.cpp ${DOCTEST_HEADER_PATH})
     add_executable(allColors ${PROJECT_SOURCE_DIR}/test/colortest.cpp)
 
     add_test(RTEST ${CMAKE_BINARY_DIR}/bin/runTest)

@@ -1,11 +1,13 @@
 #include "rang.hpp"
 
+using namespace std;
+using namespace rang;
+
 int main()
 {
-	std::cout << std::endl
-	          << rang::control::forceColor  // For appveyor terminal
-	          << rang::style::reset << rang::bg::green << rang::fg::gray
-	          << "If you're seeing green background, then rang works!"
-	          << rang::style::reset << std::endl;
-	return 0;
+    cout << endl
+         << control::forceColor  // For appveyor terminal
+         << style::reset << bg::green << fg::gray
+         << "If you're seeing green background, then rang works!"
+         << style::reset << endl;
 }
