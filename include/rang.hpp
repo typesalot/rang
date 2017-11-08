@@ -128,11 +128,8 @@ namespace rang_implementation {
         }();
 
 #elif defined(OS_WIN)
-        static const bool result = [] {
-            DWORD dwVersion    = GetVersion();
-            WORD wMajorVersion = LOBYTE(LOWORD(dwVersion));
-            return (wMajorVersion >= 5) ? true : false;
-        }();
+        // GetVersion() is deprecated in newer Visual Studio compilers
+        static constexpr bool result = true;
 #endif
         return result;
     }
@@ -209,7 +206,7 @@ namespace rang_implementation {
 
     inline WORD defaultState() noexcept
     {
-        static const WORD defaultAttributes = [] {
+        static const WORD defaultAttributes = []() -> WORD {
             CONSOLE_SCREEN_BUFFER_INFO info;
             if (!GetConsoleScreenBufferInfo(getConsoleHandle(), &info))
                 return (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
