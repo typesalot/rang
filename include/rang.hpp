@@ -212,15 +212,21 @@ namespace rang_implementation {
 
 #ifdef OS_WIN
 
-    inline HANDLE getConsoleHandle() noexcept
+    inline HANDLE getConsoleHandle(const std::streambuf *osbuf) noexcept
     {
-        static const HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-        return h;
+        if (osbuf == std::cout.rdbuf()) {
+            static const HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+            return hStdout;
+        } else if (osbuf == std::cerr.rdbuf() || osbuf == std::clog.rdbuf()) {
+            static const HANDLE hStderr = GetStdHandle(STD_ERROR_HANDLE);
+            return hStderr;
+        }
+        return INVALID_HANDLE_VALUE;
     }
 
-    inline bool setWinTermAnsiColors() noexcept
+    inline bool setWinTermAnsiColors(const std::streambuf *osbuf) noexcept
     {
-        HANDLE h = getConsoleHandle();
+        HANDLE h = getConsoleHandle(osbuf);
         if (h == INVALID_HANDLE_VALUE) {
             return false;
         }
@@ -244,12 +250,13 @@ namespace rang_implementation {
         using std::cerr;
         using std::clog;
         using std::cout;
-        static const bool nativeAnsi = setWinTermAnsiColors();
         if (osbuf == cout.rdbuf()) {
-            static bool cout_ansi = (isMsysPty(_fileno(stdout)) || nativeAnsi) ? true : false;
+            static bool cout_ansi = (isMsysPty(_fileno(stdout)) ||
+                                        setWinTermAnsiColors(osbuf)) ? true : false;
             return cout_ansi;
         } else if (osbuf == cerr.rdbuf() || osbuf == clog.rdbuf()) {
-            static bool cerr_ansi = (isMsysPty(_fileno(stderr)) || nativeAnsi) ? true : false;
+            static bool cerr_ansi = (isMsysPty(_fileno(stderr)) ||
+                                        setWinTermAnsiColors(osbuf)) ? true : false;
             return cerr_ansi;
         }
         return false;
@@ -259,8 +266,9 @@ namespace rang_implementation {
     {
         static const WORD defaultAttributes = []() -> WORD {
             CONSOLE_SCREEN_BUFFER_INFO info;
-            if (!GetConsoleScreenBufferInfo(getConsoleHandle(), &info))
-                return (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+            if (!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info) &&
+                !GetConsoleScreenBufferInfo(GetStdHandle(STD_ERROR_HANDLE), &info))
+                    return (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
             return info.wAttributes;
         }();
         return defaultAttributes;
@@ -323,7 +331,7 @@ namespace rang_implementation {
         if (supportsAnsi(os.rdbuf())) {
             return os << "\033[" << static_cast<int>(value) << "m";
         } else {
-            const HANDLE h = getConsoleHandle();
+            const HANDLE h = getConsoleHandle(os.rdbuf());
             if (h != INVALID_HANDLE_VALUE && isTerminal(os.rdbuf())) {
                 setWinAttribute(value, current_state());
                 SetConsoleTextAttribute(h, current_state());
