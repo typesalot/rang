@@ -23,7 +23,6 @@
 
 #include <windows.h>
 #include <io.h>
-#include <VersionHelpers.h>
 
 // Only defined in windows 10 onwards, redefining in lower windows since it
 // doesn't gets used in lower versions
@@ -230,19 +229,15 @@ namespace rang_implementation {
         if (h == INVALID_HANDLE_VALUE) {
             return false;
         }
-        if (IsWindowsVersionOrGreater(10, 0, 0)) {
-            DWORD dwMode = 0;
-            if (!GetConsoleMode(h, &dwMode)) {
-                return false;
-            }
-            dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            if (!SetConsoleMode(h, dwMode)) {
-                return false;
-            }
-            return true;
-        } else {
+        DWORD dwMode = 0;
+        if (!GetConsoleMode(h, &dwMode)) {
             return false;
         }
+        dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+        if (!SetConsoleMode(h, dwMode)) {
+            return false;
+        }
+        return true;
     }
 
     inline bool supportsAnsi(const std::streambuf *osbuf) noexcept
