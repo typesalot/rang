@@ -70,11 +70,13 @@ TEST_CASE("Rang printing to non-terminals")
 #error Unknown Platform
 #endif
 
+    // Behaviour should be de same on all platforms
 #if defined(OS_LINUX) || defined(OS_MAC)
         REQUIRE(s != output);
         REQUIRE(s.size() < output.size());
 #elif defined(OS_WIN)
-        REQUIRE(s == output);
+        REQUIRE(s != output);
+        REQUIRE(s.size() < output.size());
 #endif
     }
 }

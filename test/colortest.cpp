@@ -5,9 +5,9 @@ using namespace rang;
 
 int main()
 {
-
+    rang::setControlMode(control::forceColor); // For appveyor terminal
     // Visual test for background colors
-    cout << control::forceColor << bg::green
+    cout << bg::green
          << "This text has green background." << bg::reset << endl
          << bg::red << "This text has red background." << bg::reset << endl
          << bg::black << "This text has black background." << bg::reset << endl
@@ -80,6 +80,6 @@ int main()
          << style::reset << endl
          << style::reversed << "This text is reversed." << style::reset << endl
          << style::conceal << "This text is concealed." << style::reset << endl
-         << style::crossed << fg::black << "This text is crossed."
+         << style::crossed << "This text is crossed."
          << style::reset << endl;
 }
