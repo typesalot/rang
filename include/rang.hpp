@@ -494,14 +494,6 @@ inline void setControlMode(const control value) noexcept
     rang_implementation::controlMode() = value;
 }
 
-// This function should be deprecated, cause it affects all streams but not only "os" stream.
-// Use rang::setControlMode instead.
-inline std::ostream &operator<<(std::ostream &os, const rang::control value)
-{
-    setControlMode(value);
-    return os;
-}
-
 }  // namespace rang
 
 #undef OS_LINUX
