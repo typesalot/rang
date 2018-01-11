@@ -30,7 +30,7 @@ TEST_CASE("Rang printing to non-terminals")
         cout.rdbuf(out.rdbuf());
 
         // Make sure to turn color off
-        cout << control::offColor;
+        setControlMode(control::offColor);
         cout << fg::blue << s << style::reset;
 
         cout.rdbuf(coutbuf);
@@ -50,7 +50,7 @@ TEST_CASE("Rang printing to non-terminals")
         streambuf *coutbuf = cout.rdbuf();
         cout.rdbuf(out.rdbuf());
 
-        cout << control::forceColor;
+        setControlMode(control::forceColor);
         cout << fg::blue << s << style::reset;
 
         cout.rdbuf(coutbuf);
@@ -70,11 +70,13 @@ TEST_CASE("Rang printing to non-terminals")
 #error Unknown Platform
 #endif
 
+    // Behaviour should be de same on all platforms
 #if defined(OS_LINUX) || defined(OS_MAC)
         REQUIRE(s != output);
         REQUIRE(s.size() < output.size());
 #elif defined(OS_WIN)
-        REQUIRE(s == output);
+        REQUIRE(s != output);
+        REQUIRE(s.size() < output.size());
 #endif
     }
 }
@@ -85,7 +87,8 @@ TEST_CASE("Rang printing to stdout/err")
 
     SUBCASE("output is to terminal")
     {
-        cout << control::forceColor << fg::green << s << "cout" << style::reset
+        rang::setControlMode(control::forceColor);
+        cout << fg::green << s << "cout" << style::reset
              << endl;
         clog << fg::blue << s << "clog" << style::reset << endl;
         cerr << fg::red << s << "cerr" << style::reset << endl;
