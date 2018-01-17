@@ -1,46 +1,50 @@
-version: 2.0.{build}
-
-skip_tags: true
-
 environment:
   matrix:
-  # MSVC
-  - GENERATOR: Visual Studio 15 2017 Win64
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-  - GENERATOR: Visual Studio 14 2015 Win64
+    - arch: x64
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      compiler: msvc2017
+    - arch: x64
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      compiler: msvc2015
 
-  # Mingw-w64
-  - GENERATOR: MinGW Makefiles
-    CC: gcc
-    CXX: g++
+install:
+  - ps:  wget  'https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip' -OutFile ninja.zip
+  - cmd: 7z x ninja.zip -oC:\ninja > nul
+  - cmd: set PATH=C:\ninja;%PATH%
 
-  # Clang targeting mingw-w64
-  - GENERATOR: MinGW Makefiles
-    CC: clang --target=x86_64-w64-mingw32
-    CXX: clang++ --target=x86_64-w64-mingw32
+  - cmd: set MESON_PYTHON_PATH=C:\python35-x64
+  - cmd: set PATH=%MESON_PYTHON_PATH%;%MESON_PYTHON_PATH%\Scripts;%PATH%
+  - ps: $PKG_CONFIG_URL="http://ftp.gnome.org/pub/gnome/binaries/win64/dependencies/pkg-config_0.23-2_win64.zip";
+  - ps: $GLIB_URL="http://ftp.gnome.org/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip";
+  - ps: $GETTEXT_URL="http://ftp.gnome.org/pub/gnome/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip";
+  - ps: wget $GLIB_URL -OutFile glib.zip
+  - ps: wget $GETTEXT_URL -OutFile gettext.zip
+  - ps: wget $PKG_CONFIG_URL -OutFile pkg_config.zip
+  - ps: wget 'https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.6.1/OpenCppCoverageSetup-x64-0.9.6.1.exe' -OutFile coverage_setup.exe
+  - cmd: coverage_setup.exe /VERYSILENT
 
-build:
-  parallel: true
-  verbosity: minimal
+  - cmd: 7z x glib.zip -oC:\glib > nul
+  - cmd: 7z x gettext.zip -oC:\gettext > nul
+  - cmd: 7z x pkg_config.zip -oC:\pkg_config > nul
 
-init:
-  - cmake --version
+  - cmd: set OPENCPPPATH="C:\\Program Files\\OpenCppCoverage"
+  - cmd: set PATH=C:\glib\bin\;C:\gettext\bin\;C:\pkg_config\bin\;%OPENCPPPATH%;%PATH%
+  - cmd: python -m pip install meson conan
 
-before_build:
-  # Workaround for CMake not wanting sh.exe on PATH for MinGW Makefiles
-  - set PATH=%PATH:C:\Program Files\Git\usr\bin;=%
-  - set PATH=C:\mingw-w64\x86_64-6.3.0-posix-seh-rt_v5-rev1\mingw64\bin;%PATH%
-  - mkdir build
-  - cd build
-  - cmake -G "%GENERATOR%" -DBUILD_TESTING=ON ..
+  - cmd: if %compiler%==msvc2015 ( call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %arch% )
+  - cmd: if %compiler%==msvc2017 ( if %arch%==x64 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"))
+  - cmd: conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+
 
 build_script:
-  - if "%GENERATOR%" == "MinGW Makefiles" ( mingw32-make VERBOSE=1 ) else ( cmake --build . --config Debug )
-
-test_script:
-  - if "%GENERATOR%" == "MinGW Makefiles" ( cd bin ) else ( cd bin\Debug )
-  - runTest.exe
-  - vTest.exe
-  - allColors.exe
-
-deploy: off
+  - cmd: echo Building on %arch% with %compiler%
+  - cmd: mkdir build && cd build
+  - cmd: conan install ..
+  - cmd: conan build ..
+  - cmd: meson configure -Dbuildtype=debug
+  - cmd: meson configure -Dwarning_level=3
+  - cmd: ninja
+  - cmd: cd test
+  - cmd: visualTest.exe
+  - cmd: mainTest.exe
+  - cmd: colorTest.exe
