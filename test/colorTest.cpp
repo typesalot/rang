@@ -3,9 +3,10 @@
 using namespace std;
 using namespace rang;
 
-int main()
+void test_colors(const winTerm opt)
 {
-    rang::setControlMode(control::forceColor);  // For appveyor terminal
+    setWinTermMode(opt);
+
     // Visual test for background colors
     cout << bg::green << "This text has green background." << bg::reset << endl
          << bg::red << "This text has red background." << bg::reset << endl
@@ -80,4 +81,22 @@ int main()
          << style::reversed << "This text is reversed." << style::reset << endl
          << style::conceal << "This text is concealed." << style::reset << endl
          << style::crossed << "This text is crossed." << style::reset << endl;
+}
+
+int main()
+{
+    setControlMode(control::autoColor);
+    test_colors(winTerm::Auto);
+    test_colors(winTerm::Ansi);
+    test_colors(winTerm::Native);
+
+    setControlMode(control::forceColor);
+    test_colors(winTerm::Auto);
+    test_colors(winTerm::Ansi);
+    test_colors(winTerm::Native);
+
+    setControlMode(control::offColor);
+    test_colors(winTerm::Auto);
+    test_colors(winTerm::Ansi);
+    test_colors(winTerm::Native);
 }

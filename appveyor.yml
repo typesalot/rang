@@ -29,7 +29,7 @@ install:
 
   - cmd: set OPENCPPPATH="C:\\Program Files\\OpenCppCoverage"
   - cmd: set PATH=C:\glib\bin\;C:\gettext\bin\;C:\pkg_config\bin\;%OPENCPPPATH%;%PATH%
-  - cmd: python -m pip install meson conan
+  - cmd: python -m pip install meson conan codecov
 
   - cmd: if %compiler%==msvc2015 ( call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %arch% )
   - cmd: if %compiler%==msvc2017 ( if %arch%==x64 ( call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"))
@@ -37,7 +37,6 @@ install:
 
 
 build_script:
-  - cmd: echo Building on %arch% with %compiler%
   - cmd: mkdir build && cd build
   - cmd: conan install ..
   - cmd: conan build ..
@@ -48,3 +47,8 @@ build_script:
   - cmd: visualTest.exe
   - cmd: mainTest.exe
   - cmd: colorTest.exe
+  - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:visualTestReport.bin -- visualTest.exe
+  - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:mainTestReport.bin -- mainTest.exe
+  - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:colorTestReport.bin -- colorTest.exe
+  - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=cobertura:overallReport.xml --input_coverage=mainTestReport.bin --input_coverage=visualTestReport.bin --input_coverage=colorTestReport.bin
+  - cmd: codecov --root ../.. --no-color --disable gcov -f overallReport.xml
