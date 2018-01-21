@@ -143,12 +143,13 @@ before_script:
   - cd ..
 
 script:
-  - cd release && ./test/visualTest && ./test/mainTest && ./test/colorTest && cd ..
+  - cd release && ./test/visualTest && ./test/mainTest && ./test/colorTest && ./test/envTermMissing
+  - ninja cppcheck && cd ..
 
 after_success:
-  - cd debug && ./test/visualTest && ./test/mainTest && ./test/colorTest
+  - cd debug && ./test/visualTest && ./test/mainTest && ./test/colorTest && ./test/envTermMissing
   - bash <(curl -s https://codecov.io/bash)
-  - cd .. && cd release-sanitize && ./test/visualTest && ./test/mainTest && ./test/colorTest && cd ..
+  - cd .. && cd release-sanitize && ./test/visualTest && ./test/mainTest && ./test/colorTest && ./test/envTermMissing
 
 notifications:
   email: false

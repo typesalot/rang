@@ -83,20 +83,21 @@ void test_colors(const winTerm opt)
          << style::crossed << "This text is crossed." << style::reset << endl;
 }
 
+void enumerateWinTerms()
+{
+    test_colors(winTerm::Auto);
+    test_colors(winTerm::Ansi);
+    test_colors(winTerm::Native);
+}
+
 int main()
 {
     setControlMode(control::autoColor);
-    test_colors(winTerm::Auto);
-    test_colors(winTerm::Ansi);
-    test_colors(winTerm::Native);
+    enumerateWinTerms();
 
     setControlMode(control::forceColor);
-    test_colors(winTerm::Auto);
-    test_colors(winTerm::Ansi);
-    test_colors(winTerm::Native);
+    enumerateWinTerms();
 
     setControlMode(control::offColor);
-    test_colors(winTerm::Auto);
-    test_colors(winTerm::Ansi);
-    test_colors(winTerm::Native);
+    enumerateWinTerms();
 }

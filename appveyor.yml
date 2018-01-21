@@ -47,6 +47,7 @@ build_script:
   - cmd: visualTest.exe
   - cmd: mainTest.exe
   - cmd: colorTest.exe
+  - cmd: envTermMissing.exe
   - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:visualTestReport.bin -- visualTest.exe
   - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:mainTestReport.bin -- mainTest.exe
   - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:colorTestReport.bin -- colorTest.exe
