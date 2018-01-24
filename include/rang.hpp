@@ -161,7 +161,7 @@ namespace rang_implementation {
         }();
 
 #elif defined(OS_WIN)
-        // GetVersion() is deprecated in newer Visual Studio compilers
+        // All windows versions support colors through native console methods
         static constexpr bool result = true;
 #endif
         return result;
@@ -439,23 +439,16 @@ namespace rang_implementation {
     template <typename T>
     inline enableStd<T> setColor(std::ostream &os, T const value)
     {
-        if (isTerminal(os.rdbuf())) {
-            if (winTermMode() == winTerm::Auto) {
-                if (supportsAnsi(os.rdbuf())) {
-                    setWinColorAnsi(os, value);
-                } else {
-                    setWinColorNative(os, value);
-                }
-            } else if (winTermMode() == winTerm::Ansi) {
+        if (winTermMode() == winTerm::Auto) {
+            if (supportsAnsi(os.rdbuf())) {
                 setWinColorAnsi(os, value);
             } else {
                 setWinColorNative(os, value);
             }
+        } else if (winTermMode() == winTerm::Ansi) {
+            setWinColorAnsi(os, value);
         } else {
-            // force ANSI output to non terminal streams if set
-            if (controlMode() == control::forceColor) {
-                setWinColorAnsi(os, value);
-            }
+            setWinColorNative(os, value);
         }
         return os;
     }
