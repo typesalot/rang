@@ -21,7 +21,7 @@ TEST_CASE("Rang printing to non-terminals")
         cout.rdbuf(out.rdbuf());
 
         // Make sure to turn color off
-        setControlMode(control::offColor);
+        setControlMode(control::Off);
         cout << fg::blue << s << style::reset;
 
         cout.rdbuf(coutbuf);
@@ -41,7 +41,8 @@ TEST_CASE("Rang printing to non-terminals")
         streambuf *coutbuf = cout.rdbuf();
         cout.rdbuf(out.rdbuf());
 
-        setControlMode(control::forceColor);
+        setControlMode(control::Force);
+        setWinTermMode(winTerm::Ansi);
         cout << fg::blue << s << style::reset;
 
         cout.rdbuf(coutbuf);

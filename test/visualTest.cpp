@@ -6,7 +6,7 @@ using namespace rang;
 int main()
 {
     // Forcing color for online CI terminals
-    setControlMode(control::forceColor);
+    setControlMode(control::Force);
     cout << endl
          << style::reset << bg::green << fg::gray
          << "If you're seeing green background, then rang works!"

@@ -111,9 +111,9 @@ enum class bgB {
 };
 
 enum class control : int {  // Behaviour of rang function calls
-    offColor   = 0,  // toggle off rang style/color calls
-    autoColor  = 1,  // (Default) autodect terminal and colorize if needed
-    forceColor = 2  // force ansi color output to non terminal streams
+    Off   = 0,  // toggle off rang style/color calls
+    Auto  = 1,  // (Default) autodect terminal and colorize if needed
+    Force = 2  // force ansi color output to non terminal streams
 };
 // Use rang::setControlMode to set rang control mode
 
@@ -129,7 +129,7 @@ namespace rang_implementation {
 
     inline std::atomic<control> &controlMode() noexcept
     {
-        static std::atomic<control> value(control::autoColor);
+        static std::atomic<control> value(control::Auto);
         return value;
     }
 
@@ -467,13 +467,13 @@ inline rang_implementation::enableStd<T> operator<<(std::ostream &os,
 {
     const control option = rang_implementation::controlMode();
     switch (option) {
-        case control::offColor: return os;
-        case control::autoColor:
+        case control::Off: return os;
+        case control::Auto:
             return rang_implementation::supportsColor()
                 && rang_implementation::isTerminal(os.rdbuf())
               ? rang_implementation::setColor(os, value)
               : os;
-        case control::forceColor:
+        case control::Force:
             return rang_implementation::setColor(os, value);
         default: return os;
     }

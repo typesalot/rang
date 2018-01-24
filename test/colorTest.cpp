@@ -92,12 +92,12 @@ void enumerateWinTerms()
 
 int main()
 {
-    setControlMode(control::autoColor);
+    setControlMode(control::Auto);
     enumerateWinTerms();
 
-    setControlMode(control::forceColor);
+    setControlMode(control::Force);
     enumerateWinTerms();
 
-    setControlMode(control::offColor);
+    setControlMode(control::Off);
     enumerateWinTerms();
 }
