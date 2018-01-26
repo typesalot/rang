@@ -44,7 +44,6 @@ build_script:
   - cmd: meson configure -Dwarning_level=3
   - cmd: ninja
   - cmd: cd test
-  - cmd: visualTest.exe
   - cmd: mainTest.exe
   - cmd: colorTest.exe
   - cmd: envTermMissing.exe

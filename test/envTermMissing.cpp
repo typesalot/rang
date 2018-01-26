@@ -15,7 +15,7 @@ int main()
         cout << "Unsetting $PATH: " << TERM << '\n';
         unsetenv("TERM");
     }
-    cout << rang::fg::green << "No colors as fallback" << endl;
+    cout << rang::fg::green << "===NO COLORS AS FALLBACK===" << endl;
     if (TERM != nullptr) {
         cout << "Setting $PATH: " << TERM << '\n';
         setenv("TERM", TERM, 1);

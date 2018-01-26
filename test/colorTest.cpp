@@ -1,103 +1,126 @@
 #include "rang.hpp"
+#include <string>
 
 using namespace std;
 using namespace rang;
 
-void test_colors(const winTerm opt)
+void printHeading(string heading)
+{
+    cout << '\n'
+         << style::reset << heading << style::reset << bg::reset << fg::reset
+         << endl;
+}
+
+void test_colors(ostream &os, const winTerm opt)
 {
     setWinTermMode(opt);
 
-    // Visual test for background colors
-    cout << bg::green << "This text has green background." << bg::reset << endl
-         << bg::red << "This text has red background." << bg::reset << endl
-         << bg::black << "This text has black background." << bg::reset << endl
-         << bg::yellow << "This text has yellow background." << bg::reset
-         << endl
-         << bg::blue << "This text has blue background." << bg::reset << endl
-         << bg::magenta << "This text has magenta background." << bg::reset
-         << endl
-         << bg::cyan << "This text has cyan background." << bg::reset << endl
-         << bg::gray << fg::black << "This text has gray background."
-         << bg::reset << style::reset << endl
+    printHeading("Text Style Test:");
+    os << style::bold << " Bold " << style::reset;
+    os << style::italic << " Italic " << style::reset;
+    os << style::underline << " Underlined " << style::reset;
+    os << style::dim << " Dim " << style::reset;
+    os << style::conceal << " Conceal " << style::reset;
+    os << style::reversed << " Reversed " << style::reset;
+    os << style::blink << " Blink " << style::reset;
+    os << style::rblink << " rBlink " << style::reset;
+    os << style::crossed << " Crossed " << style::reset << endl;
 
-         << endl
+    printHeading("Background Test:");
+    os << bg::green << " Green " << bg::reset;
+    os << bg::red << " Red " << bg::reset;
+    os << bg::black << " Black " << bg::reset;
+    os << bg::yellow << " Yellow " << bg::reset;
+    os << bg::blue << " Blue " << bg::reset;
+    os << bg::magenta << " Magenta " << bg::reset;
+    os << bg::cyan << " Cyan " << bg::reset;
+    os << bg::gray << " Grey " << bg::reset << endl;
 
-         // Visual test for foreground colors
-         << fg::green << "This text has green color." << fg::reset << endl
-         << fg::red << "This text has red color." << fg::reset << endl
-         << fg::black << bg::gray << "This text has black color." << fg::reset
-         << bg::reset << endl
-         << fg::yellow << "This text has yellow color." << fg::reset << endl
-         << fg::blue << "This text has blue color." << fg::reset << endl
-         << fg::magenta << "This text has magenta color." << fg::reset << endl
-         << fg::cyan << "This text has cyan color." << fg::reset << endl
-         << fg::gray << "This text has gray color." << style::reset << endl
+    printHeading("Foreground Test:");
+    os << fg::green << " Green " << fg::reset;
+    os << fg::red << " Red " << fg::reset;
+    os << fg::black << " Black " << fg::reset;
+    os << fg::yellow << " Yellow " << fg::reset;
+    os << fg::blue << " Blue " << fg::reset;
+    os << fg::magenta << " Magenta " << fg::reset;
+    os << fg::cyan << " Cyan " << fg::reset;
+    os << fg::gray << " Grey " << fg::reset << endl;
 
-         << endl
+    printHeading("Bright Background Test:");
+    os << bgB::green << " Green ";
+    os << bgB::red << " Red ";
+    os << bgB::black << " Black ";
+    os << bgB::yellow << " Yellow ";
+    os << bgB::blue << " Blue ";
+    os << bgB::magenta << " Magenta ";
+    os << bgB::cyan << " Cyan ";
+    os << bgB::gray << " Grey " << style::reset << endl;
 
-         // Visual test for bright background colors
-         << bgB::green << fg::black << "This text has bright green background."
-         << style::reset << endl
-         << bgB::red << "This text has bright red background." << style::reset
-         << endl
-         << bgB::black << "This text has bright black background."
-         << style::reset << endl
-         << bgB::yellow << fg::black
-         << "This text has bright yellow background." << style::reset << endl
-         << bgB::blue << "This text has bright blue background." << style::reset
-         << endl
-         << bgB::magenta << "This text has bright magenta background."
-         << style::reset << endl
-         << bgB::cyan << "This text has bright cyan background." << style::reset
-         << endl
-         << bgB::gray << fg::black << "This text has bright gray background."
-         << style::reset << style::reset << endl
-
-         << endl
-
-         // Visual test for bright foreground colors
-         << fgB::green << "This text has bright green color." << endl
-         << fgB::red << "This text has bright red color." << endl
-         << fgB::black << "This text has bright black color." << endl
-         << fgB::yellow << "This text has bright yellow color." << endl
-         << fgB::blue << "This text has bright blue color." << endl
-         << fgB::magenta << "This text has bright magenta color." << endl
-         << fgB::cyan << "This text has bright cyan color." << endl
-         << fgB::gray << "This text has bright gray color." << style::reset
-         << endl
-
-         << endl
-
-         // Visual test for text effects
-         << style::bold << "This text is bold." << style::reset << endl
-         << style::dim << "This text is dim." << style::reset << endl
-         << style::italic << "This text is italic." << style::reset << endl
-         << style::underline << "This text is underlined." << style::reset
-         << endl
-         << style::blink << "This text text has blink effect." << style::reset
-         << endl
-         << style::rblink << "This text text has rapid blink effect."
-         << style::reset << endl
-         << style::reversed << "This text is reversed." << style::reset << endl
-         << style::conceal << "This text is concealed." << style::reset << endl
-         << style::crossed << "This text is crossed." << style::reset << endl;
+    printHeading("Bright Foreground Test:");
+    os << fgB::green << " Green ";
+    os << fgB::red << " Red ";
+    os << fgB::black << " Black ";
+    os << fgB::yellow << " Yellow ";
+    os << fgB::blue << " Blue ";
+    os << fgB::magenta << " Magenta ";
+    os << fgB::cyan << " Cyan ";
+    os << fgB::gray << " Grey " << style::reset << endl;
 }
 
 void enumerateWinTerms()
 {
-    test_colors(winTerm::Auto);
-    test_colors(winTerm::Ansi);
-    test_colors(winTerm::Native);
+    cout << endl;
+    cout << "_________________________________________________________________";
+    cout << "\n\n"
+         << style::reset << style::bold << "Printing for WinTerm = Auto"
+         << style::reset << bg::reset << fg::reset << '\n';
+    cout << "_________________________________________________________________";
+    test_colors(cout, winTerm::Auto);
+    test_colors(clog, winTerm::Auto);
+    test_colors(cerr, winTerm::Auto);
+    cout << "-------------------------------------------------------------\n\n";
+
+    cout << endl;
+    cout << "_________________________________________________________________";
+    cout << "\n\n"
+         << style::reset << style::bold << "Printing for WinTerm = Ansi"
+         << style::reset << bg::reset << fg::reset << '\n';
+    cout << "_________________________________________________________________";
+    test_colors(cout, winTerm::Ansi);
+    test_colors(clog, winTerm::Ansi);
+    test_colors(cerr, winTerm::Ansi);
+    cout << "-------------------------------------------------------------\n\n";
+
+    cout << endl;
+    cout << "_________________________________________________________________";
+    cout << "\n\n"
+         << style::reset << style::bold << "Printing for WinTerm = Native"
+         << style::reset << bg::reset << fg::reset << '\n';
+    cout << "_________________________________________________________________";
+    test_colors(cout, winTerm::Native);
+    test_colors(clog, winTerm::Native);
+    test_colors(cerr, winTerm::Native);
+    cout << "-------------------------------------------------------------\n\n";
 }
 
 int main()
 {
-    setControlMode(control::autoColor);
+    cout << "\n\n\n"
+         << style::reset << style::underline << style::bold << "Control = Auto"
+         << style::reset << bg::reset << fg::reset << endl;
+    setControlMode(control::Auto);
     enumerateWinTerms();
 
-    setControlMode(control::forceColor);
+    cout << "\n\n\n"
+         << style::reset << style::underline << style::bold
+         << "Control = Force " << style::reset << bg::reset << fg::reset
+         << endl;
+    setControlMode(control::Force);
     enumerateWinTerms();
 
-    setControlMode(control::offColor);
+    cout << "\n\n\n"
+         << style::reset << style::underline << style::bold << "Control = Off "
+         << style::reset << bg::reset << fg::reset << endl;
+    setControlMode(control::Off);
     enumerateWinTerms();
 }

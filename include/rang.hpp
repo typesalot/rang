@@ -13,7 +13,6 @@
 
 #if defined(OS_LINUX) || defined(OS_MAC)
 #include <unistd.h>
-#include <cstring>
 
 #elif defined(OS_WIN)
 
@@ -43,6 +42,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 namespace rang {
@@ -110,14 +110,14 @@ enum class bgB {
     gray    = 107
 };
 
-enum class control : int {  // Behaviour of rang function calls
-    offColor   = 0,  // toggle off rang style/color calls
-    autoColor  = 1,  // (Default) autodect terminal and colorize if needed
-    forceColor = 2  // force ansi color output to non terminal streams
+enum class control {  // Behaviour of rang function calls
+    Off   = 0,  // toggle off rang style/color calls
+    Auto  = 1,  // (Default) autodect terminal and colorize if needed
+    Force = 2  // force ansi color output to non terminal streams
 };
 // Use rang::setControlMode to set rang control mode
 
-enum class winTerm : int {  // Windows Terminal Mode
+enum class winTerm {  // Windows Terminal Mode
     Auto   = 0,  // (Default) automatically detects wheter Ansi or Native API
     Ansi   = 1,  // Force use Ansi API
     Native = 2  // Force use Native API
@@ -129,7 +129,7 @@ namespace rang_implementation {
 
     inline std::atomic<control> &controlMode() noexcept
     {
-        static std::atomic<control> value(control::autoColor);
+        static std::atomic<control> value(control::Auto);
         return value;
     }
 
@@ -152,16 +152,15 @@ namespace rang_implementation {
             const char *env_p = std::getenv("TERM");
             if (env_p == nullptr) {
                 return false;
-            } else {
-                return std::any_of(
-                  std::begin(Terms), std::end(Terms), [&](const char *term) {
-                      return std::strstr(env_p, term) != nullptr;
-                  });
             }
+            return std::any_of(std::begin(Terms), std::end(Terms),
+                               [&](const char *term) {
+                                   return std::strstr(env_p, term) != nullptr;
+                               });
         }();
 
 #elif defined(OS_WIN)
-        // GetVersion() is deprecated in newer Visual Studio compilers
+        // All windows versions support colors through native console methods
         static constexpr bool result = true;
 #endif
         return result;
@@ -171,25 +170,30 @@ namespace rang_implementation {
     inline bool isMsysPty(int fd) noexcept
     {
         // Dynamic load for binary compability with old Windows
-        decltype(&GetFileInformationByHandleEx) ptrGetFileInformationByHandleEx
-          = nullptr;
+        const auto ptrGetFileInformationByHandleEx
+          = reinterpret_cast<decltype(&GetFileInformationByHandleEx)>(
+            GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")),
+                           "GetFileInformationByHandleEx"));
         if (!ptrGetFileInformationByHandleEx) {
-            ptrGetFileInformationByHandleEx
-              = reinterpret_cast<decltype(&GetFileInformationByHandleEx)>(
-                GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")),
-                               "GetFileInformationByHandleEx"));
-            if (!ptrGetFileInformationByHandleEx) return false;
+            return false;
         }
+
+        HANDLE h = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
+        if (h == INVALID_HANDLE_VALUE) {
+            return false;
+        }
+
+        // Check that it's a pipe:
+        if (GetFileType(h) != FILE_TYPE_PIPE) {
+            return false;
+        }
+
         constexpr const DWORD size
           = sizeof(FILE_NAME_INFO) + sizeof(WCHAR) * (MAX_PATH + 1);
         char buffer[size];
         FILE_NAME_INFO *nameinfo
           = reinterpret_cast<FILE_NAME_INFO *>(&buffer[0]);
 
-        HANDLE h = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
-        if (h == INVALID_HANDLE_VALUE) return false;
-        // Check that it's a pipe:
-        if (GetFileType(h) != FILE_TYPE_PIPE) return false;
         // Check pipe name is template of
         // {"cygwin-","msys-"}XXXXXXXXXXXXXXX-ptyX-XX
         if (ptrGetFileInformationByHandleEx(h, FileNameInfo, nameinfo,
@@ -198,9 +202,11 @@ namespace rang_implementation {
               = L'\0';
             PWSTR name = nameinfo->FileName;
             if ((!wcsstr(name, L"msys-") && !wcsstr(name, L"cygwin-"))
-                || !wcsstr(name, L"-pty"))
+                || !wcsstr(name, L"-pty")) {
                 return false;
+            }
         }
+
         return true;
     }
 #endif
@@ -212,24 +218,20 @@ namespace rang_implementation {
         using std::cout;
 #if defined(OS_LINUX) || defined(OS_MAC)
         if (osbuf == cout.rdbuf()) {
-            static bool cout_term = isatty(fileno(stdout)) ? true : false;
+            static const bool cout_term = isatty(fileno(stdout)) != 0;
             return cout_term;
         } else if (osbuf == cerr.rdbuf() || osbuf == clog.rdbuf()) {
-            static bool cerr_term = isatty(fileno(stderr)) ? true : false;
+            static const bool cerr_term = isatty(fileno(stderr)) != 0;
             return cerr_term;
         }
 #elif defined(OS_WIN)
         if (osbuf == cout.rdbuf()) {
-            static bool cout_term
-              = (_isatty(_fileno(stdout)) || isMsysPty(_fileno(stdout)))
-              ? true
-              : false;
+            static const bool cout_term
+              = (_isatty(_fileno(stdout)) || isMsysPty(_fileno(stdout)));
             return cout_term;
         } else if (osbuf == cerr.rdbuf() || osbuf == clog.rdbuf()) {
-            static bool cerr_term
-              = (_isatty(_fileno(stderr)) || isMsysPty(_fileno(stderr)))
-              ? true
-              : false;
+            static const bool cerr_term
+              = (_isatty(_fileno(stderr)) || isMsysPty(_fileno(stderr)));
             return cerr_term;
         }
 #endif
@@ -301,16 +303,12 @@ namespace rang_implementation {
         using std::clog;
         using std::cout;
         if (osbuf == cout.rdbuf()) {
-            static bool cout_ansi
-              = (isMsysPty(_fileno(stdout)) || setWinTermAnsiColors(osbuf))
-              ? true
-              : false;
+            static const bool cout_ansi
+              = (isMsysPty(_fileno(stdout)) || setWinTermAnsiColors(osbuf));
             return cout_ansi;
         } else if (osbuf == cerr.rdbuf() || osbuf == clog.rdbuf()) {
-            static bool cerr_ansi
-              = (isMsysPty(_fileno(stderr)) || setWinTermAnsiColors(osbuf))
-              ? true
-              : false;
+            static const bool cerr_ansi
+              = (isMsysPty(_fileno(stderr)) || setWinTermAnsiColors(osbuf));
             return cerr_ansi;
         }
         return false;
@@ -324,8 +322,9 @@ namespace rang_implementation {
             if (GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
                                            &info)
                 || GetConsoleScreenBufferInfo(GetStdHandle(STD_ERROR_HANDLE),
-                                              &info))
+                                              &info)) {
                 attrib = info.wAttributes;
+            }
             SGR sgr     = { 0, 0, 0, 0, FALSE, FALSE };
             sgr.fgColor = attrib & 0x0F;
             sgr.bgColor = (attrib & 0xF0) >> 4;
@@ -394,7 +393,7 @@ namespace rang_implementation {
         return state;
     }
 
-    inline WORD SGR2Attr(const SGR &state)
+    inline WORD SGR2Attr(const SGR &state) noexcept
     {
         WORD attrib = 0;
         if (state.conceal) {
@@ -439,23 +438,16 @@ namespace rang_implementation {
     template <typename T>
     inline enableStd<T> setColor(std::ostream &os, T const value)
     {
-        if (isTerminal(os.rdbuf())) {
-            if (winTermMode() == winTerm::Auto) {
-                if (supportsAnsi(os.rdbuf())) {
-                    setWinColorAnsi(os, value);
-                } else {
-                    setWinColorNative(os, value);
-                }
-            } else if (winTermMode() == winTerm::Ansi) {
+        if (winTermMode() == winTerm::Auto) {
+            if (supportsAnsi(os.rdbuf())) {
                 setWinColorAnsi(os, value);
             } else {
                 setWinColorNative(os, value);
             }
+        } else if (winTermMode() == winTerm::Ansi) {
+            setWinColorAnsi(os, value);
         } else {
-            // force ANSI output to non terminal streams if set
-            if (controlMode() == control::forceColor) {
-                setWinColorAnsi(os, value);
-            }
+            setWinColorNative(os, value);
         }
         return os;
     }
@@ -474,14 +466,12 @@ inline rang_implementation::enableStd<T> operator<<(std::ostream &os,
 {
     const control option = rang_implementation::controlMode();
     switch (option) {
-        case control::offColor: return os;
-        case control::autoColor:
+        case control::Auto:
             return rang_implementation::supportsColor()
                 && rang_implementation::isTerminal(os.rdbuf())
               ? rang_implementation::setColor(os, value)
               : os;
-        case control::forceColor:
-            return rang_implementation::setColor(os, value);
+        case control::Force: return rang_implementation::setColor(os, value);
         default: return os;
     }
 }
