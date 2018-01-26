@@ -13,7 +13,6 @@
 
 #if defined(OS_LINUX) || defined(OS_MAC)
 #include <unistd.h>
-#include <cstring>
 
 #elif defined(OS_WIN)
 
@@ -43,6 +42,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 namespace rang {
@@ -152,12 +152,11 @@ namespace rang_implementation {
             const char *env_p = std::getenv("TERM");
             if (env_p == nullptr) {
                 return false;
-            } else {
-                return std::any_of(
-                  std::begin(Terms), std::end(Terms), [&](const char *term) {
-                      return std::strstr(env_p, term) != nullptr;
-                  });
             }
+            return std::any_of(std::begin(Terms), std::end(Terms),
+                               [&](const char *term) {
+                                   return std::strstr(env_p, term) != nullptr;
+                               });
         }();
 
 #elif defined(OS_WIN)

@@ -1,4 +1,4 @@
-# rang [![Build Status](https://travis-ci.org/agauniyal/rang.svg?branch=master)](https://travis-ci.org/agauniyal/rang) [![Build status](https://ci.appveyor.com/api/projects/status/jqpdoelli38h2a7w?svg=true)](https://ci.appveyor.com/project/agauniyal/rang) [![Coverage Status](https://coveralls.io/repos/github/agauniyal/rang/badge.svg?branch=master)](https://coveralls.io/github/agauniyal/rang?branch=master)
+# rang [![Build Status](https://travis-ci.org/agauniyal/rang.svg?branch=master)](https://travis-ci.org/agauniyal/rang) [![Build status](https://ci.appveyor.com/api/projects/status/jqpdoelli38h2a7w?svg=true)](https://ci.appveyor.com/project/agauniyal/rang) [![codecov](https://codecov.io/gh/agauniyal/rang/branch/master/graph/badge.svg)](https://codecov.io/gh/agauniyal/rang)
 
 ##### Colors for your Terminal.
 
@@ -7,10 +7,8 @@
 
 ------
 ## How to use it
-#### No build system/package manager
-1. You just need [rang.hpp](https://raw.githubusercontent.com/agauniyal/rang/master/include/rang.hpp) from include directory, use it as `#include "rang.hpp"`
-2. Check out the [wiki](https://github.com/agauniyal/rang/wiki) ~~& maybe glance inside ***`test`*** directory to see some usage~~
-3. ???
-4. Profit!!
 
 #### Using Conan package manager
+
+#### Not using conan?
+Just download and include [rang.hpp](https://raw.githubusercontent.com/agauniyal/rang/master/include/rang.hpp) in your source files.
