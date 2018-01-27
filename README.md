@@ -79,22 +79,21 @@ Supported attributes with their compatiblity are listed below -
 
 **Text Styles**:
 
-| Code | Linux/Win | Old Win
+| Code | Linux/Win/Others | Old Win
 | ---- | --------- | ------ |
-| `rang::style::reset`     | yes   | yes |
-| `rang::style::bold`      | yes   | yes |
-| `rang::style::dim`       | yes   | no  |
-| `rang::style::italic`    | yes   | yes |
-| `rang::style::underline` | yes   | no  |
-| `rang::style::blink`     | no    | no  |
-| `rang::style::rblink`    | no    | no  |
-| `rang::style::reversed`  | yes   | no  |
-| `rang::style::conceal`   | maybe | no  |
-| `rang::style::crossed`   | yes   | no  |
+| `rang::style::bold`      | yes   | yes   |
+| `rang::style::dim`       | yes   | no    |
+| `rang::style::italic`    | yes   | no    |
+| `rang::style::underline` | yes   | maybe |
+| `rang::style::blink`     | no    | maybe |
+| `rang::style::rblink`    | no    | no    |
+| `rang::style::reversed`  | yes   | yes   |
+| `rang::style::conceal`   | maybe | yes   |
+| `rang::style::crossed`   | yes   | no    |
 
 **Text Color**:
 
-| Code | Linux/Win | Old Win
+| Code | Linux/Win/Others | Old Win
 | ---- | --------- | ------ |
 | `rang::fg::black`     | yes | yes |
 | `rang::fg::red`       | yes | yes |
@@ -107,7 +106,7 @@ Supported attributes with their compatiblity are listed below -
 
 **Background Color**:
 
-| Code | Linux/Win | Old Win
+| Code | Linux/Win/Others | Old Win
 | ---- | --------- | ------ |
 | `rang::bg::black`     | yes | yes |
 | `rang::bg::red`       | yes | yes |
@@ -120,7 +119,7 @@ Supported attributes with their compatiblity are listed below -
 
 **Bright Foreground Color**:
 
-| Code | Linux/Win | Old Win
+| Code | Linux/Win/Others | Old Win
 | ---- | --------- | ------ |
 | `rang::fgB::black`     | yes | yes |
 | `rang::fgB::red`       | yes | yes |
@@ -133,7 +132,7 @@ Supported attributes with their compatiblity are listed below -
 
 **Bright Background Color**:
 
-| Code | Linux/Win | Old Win
+| Code | Linux/Win/Others | Old Win
 | ---- | --------- | ------ |
 | `rang::bgB::black`     | yes | yes |
 | `rang::bgB::red`       | yes | yes |
@@ -143,6 +142,14 @@ Supported attributes with their compatiblity are listed below -
 | `rang::bgB::magenta`   | yes | yes |
 | `rang::bgB::cyan`      | yes | yes |
 | `rang::bgB::gray`      | yes | yes |
+
+**Reset Styles/Colors**:
+
+| Code | Linux/Win/Others | Old Win
+| ---- | --------- | ------ |
+| `rang::style::reset`  | yes   | yes |
+| `rang::fg::reset`     | yes   | yes |
+| `rang::bg::reset`     | yes   | yes |
 
 -----
 ## My terminal is not detected/gets garbage output!
