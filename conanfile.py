@@ -1,19 +1,23 @@
-from conans import ConanFile, tools
-import os
+from conans import ConanFile, Meson
+
 
 class RangConan(ConanFile):
-    '''
-    Change version defined here if moving up.
-    Build policy set to missing to avoid the --build flag since only a header is required.
-    '''
     name = "rang"
-    version = "2.0"
-    url = "https://github.com/agauniyal/rang.git"
-    build_policy = "missing"
+    version = "3.0.0"
+    license = "The Unlicense"
+    url = "https://github.com/agauniyal/rang"
+    description = "A Minimal, Header only Modern c++ library for colors in your terminal"
+    generators = "pkg_config"
+    build_requires = "doctest/1.2.6@bincrafters/stable"
+    exports_sources = "*"
 
-    def source(self):
-        self.run("git clone https://github.com/agauniyal/rang.git")
-        self.run("cd rang && git checkout v2.0")
+    def build(self):
+        meson = Meson(self)
+        meson.configure(cache_build_folder="build")
+        meson.build()
 
     def package(self):
-        self.copy("*.hpp", dst="include", src="rang/include")
+        self.copy("*.hpp")
+
+    def package_id(self):
+        self.info.header_only()
