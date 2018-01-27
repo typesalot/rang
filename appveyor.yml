@@ -47,8 +47,8 @@ build_script:
   - cmd: mainTest.exe
   - cmd: colorTest.exe
   - cmd: envTermMissing.exe
-  - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:visualTestReport.bin -- visualTest.exe
+  - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:envTermMissingReport.bin -- envTermMissing.exe
   - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:mainTestReport.bin -- mainTest.exe
   - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=binary:colorTestReport.bin -- colorTest.exe
-  - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=cobertura:overallReport.xml --input_coverage=mainTestReport.bin --input_coverage=visualTestReport.bin --input_coverage=colorTestReport.bin
+  - cmd: OpenCppCoverage --sources C:\projects\rang --export_type=cobertura:overallReport.xml --input_coverage=mainTestReport.bin --input_coverage=envTermMissingReport.bin --input_coverage=colorTestReport.bin
   - cmd: codecov --root ../.. --no-color --disable gcov -f overallReport.xml

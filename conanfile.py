@@ -9,10 +9,11 @@ class RangConan(ConanFile):
     description = "A Minimal, Header only Modern c++ library for colors in your terminal"
     generators = "pkg_config"
     build_requires = "doctest/1.2.6@bincrafters/stable"
+    exports_sources = "*"
 
     def build(self):
         meson = Meson(self)
-        meson.configure()
+        meson.configure(cache_build_folder="build")
         meson.build()
 
     def package(self):
