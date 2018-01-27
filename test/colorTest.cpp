@@ -47,24 +47,24 @@ void test_colors(ostream &os, const winTerm opt)
     os << fg::gray << " Grey " << fg::reset << endl;
 
     printHeading("Bright Background Test:");
-    os << bgB::green << " Green ";
-    os << bgB::red << " Red ";
-    os << bgB::black << " Black ";
-    os << bgB::yellow << " Yellow ";
-    os << bgB::blue << " Blue ";
-    os << bgB::magenta << " Magenta ";
-    os << bgB::cyan << " Cyan ";
-    os << bgB::gray << " Grey " << style::reset << endl;
+    os << bgB::green << " Green " << bg::reset;
+    os << bgB::red << " Red " << bg::reset;
+    os << bgB::black << " Black " << bg::reset;
+    os << bgB::yellow << " Yellow " << bg::reset;
+    os << bgB::blue << " Blue " << bg::reset;
+    os << bgB::magenta << " Magenta " << bg::reset;
+    os << bgB::cyan << " Cyan " << bg::reset;
+    os << bgB::gray << " Grey " << bg::reset << endl;
 
     printHeading("Bright Foreground Test:");
-    os << fgB::green << " Green ";
-    os << fgB::red << " Red ";
-    os << fgB::black << " Black ";
-    os << fgB::yellow << " Yellow ";
-    os << fgB::blue << " Blue ";
-    os << fgB::magenta << " Magenta ";
-    os << fgB::cyan << " Cyan ";
-    os << fgB::gray << " Grey " << style::reset << endl;
+    os << fgB::green << " Green " << fg::reset;
+    os << fgB::red << " Red " << fg::reset;
+    os << fgB::black << " Black " << fg::reset;
+    os << fgB::yellow << " Yellow " << fg::reset;
+    os << fgB::blue << " Blue " << fg::reset;
+    os << fgB::magenta << " Magenta " << fg::reset;
+    os << fgB::cyan << " Cyan " << fg::reset;
+    os << fgB::gray << " Grey " << fg::reset << endl;
 }
 
 void enumerateWinTerms()
