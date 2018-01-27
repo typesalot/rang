@@ -155,3 +155,7 @@ Supported attributes with their compatiblity are listed below -
 ## My terminal is not detected/gets garbage output!
 
 Check your env variable `TERM`'s value. Then open an issue [here](https://github.com/agauniyal/rang/issues/new) and make sure to mention `TERM`'s value along with your terminal name.
+
+## Redirecting `cout`/`cerr`/`clog` rdbuf?
+
+Rang doesn't interfere if you try to redirect `cout`/`cerr`/`clog` to somewhere else and leaves the decision to the library user. Make sure you've read this [conversation](https://github.com/agauniyal/rang/pull/77#issuecomment-360991652) and check out the example code [here](https://gist.github.com/kingseva/a918ec66079a9475f19642ec31276a21).
