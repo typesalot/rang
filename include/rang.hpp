@@ -190,7 +190,7 @@ namespace rang_implementation {
 
         constexpr const DWORD size
           = sizeof(FILE_NAME_INFO) + sizeof(WCHAR) * (MAX_PATH + 1);
-        char buffer[size];
+        alignas(FILE_NAME_INFO) char buffer[size];
         FILE_NAME_INFO *nameinfo
           = reinterpret_cast<FILE_NAME_INFO *>(&buffer[0]);
 
