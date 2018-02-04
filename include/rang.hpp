@@ -16,8 +16,6 @@
 
 #elif defined(OS_WIN)
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
-
 #if defined(_WIN32_WINNT) && (_WIN32_WINNT < 0x0600)
 #error                                                                         \
   "Please include rang.hpp before any windows system headers or set _WIN32_WINNT at least to _WIN32_WINNT_VISTA"
@@ -25,10 +23,9 @@
 #define _WIN32_WINNT _WIN32_WINNT_VISTA
 #endif
 
-#endif
-
 #include <windows.h>
 #include <io.h>
+#include <memory>
 
 // Only defined in windows 10 onwards, redefining in lower windows since it
 // doesn't gets used in lower versions
@@ -167,6 +164,12 @@ namespace rang_implementation {
     }
 
 #ifdef OS_WIN
+
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable:4191) // unsafe conversion from 'FARPROC' to function prototype
+#endif
+
     inline bool isMsysPty(int fd) noexcept
     {
         // Dynamic load for binary compability with old Windows
@@ -188,27 +191,38 @@ namespace rang_implementation {
             return false;
         }
 
-        constexpr const DWORD size
-          = sizeof(FILE_NAME_INFO) + sizeof(WCHAR) * (MAX_PATH + 1);
-        alignas(FILE_NAME_INFO) char buffer[size];
-        FILE_NAME_INFO *nameinfo
-          = reinterpret_cast<FILE_NAME_INFO *>(&buffer[0]);
+        // POD type is binary compatible with FILE_NAME_INFO from WinBase.h
+        // It have the same alignment and used to avoid UB in caller code
+        struct MY_FILE_NAME_INFO {
+            DWORD FileNameLength;
+            WCHAR FileName[MAX_PATH];
+        };
+
+        auto pNameInfo = std::unique_ptr<MY_FILE_NAME_INFO>(new(std::nothrow) MY_FILE_NAME_INFO());
+        if (!pNameInfo) {
+            return false;
+        }
 
         // Check pipe name is template of
         // {"cygwin-","msys-"}XXXXXXXXXXXXXXX-ptyX-XX
-        if (ptrGetFileInformationByHandleEx(h, FileNameInfo, nameinfo,
-                                            size - sizeof(WCHAR))) {
-            nameinfo->FileName[nameinfo->FileNameLength / sizeof(WCHAR)]
-              = L'\0';
-            PWSTR name = nameinfo->FileName;
+        if (ptrGetFileInformationByHandleEx(h, FileNameInfo, pNameInfo.get(),
+                                           sizeof(MY_FILE_NAME_INFO))) {
+            PWSTR name = pNameInfo->FileName;
             if ((!wcsstr(name, L"msys-") && !wcsstr(name, L"cygwin-"))
                 || !wcsstr(name, L"-pty")) {
                 return false;
             }
+        } else {
+            return false;
         }
 
         return true;
     }
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
+
 #endif
 
     inline bool isTerminal(const std::streambuf *osbuf) noexcept
