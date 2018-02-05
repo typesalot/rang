@@ -165,10 +165,6 @@ namespace rang_implementation {
 
 #ifdef OS_WIN
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable:4191) // unsafe conversion from 'FARPROC' to function prototype
-#endif
 
     inline bool isMsysPty(int fd) noexcept
     {
@@ -198,7 +194,8 @@ namespace rang_implementation {
             WCHAR FileName[MAX_PATH];
         };
 
-        auto pNameInfo = std::unique_ptr<MY_FILE_NAME_INFO>(new(std::nothrow) MY_FILE_NAME_INFO());
+        auto pNameInfo = std::unique_ptr<MY_FILE_NAME_INFO>(
+          new (std::nothrow) MY_FILE_NAME_INFO());
         if (!pNameInfo) {
             return false;
         }
@@ -206,11 +203,11 @@ namespace rang_implementation {
         // Check pipe name is template of
         // {"cygwin-","msys-"}XXXXXXXXXXXXXXX-ptyX-XX
         if (ptrGetFileInformationByHandleEx(h, FileNameInfo, pNameInfo.get(),
-                                           sizeof(MY_FILE_NAME_INFO))) {
+                                            sizeof(MY_FILE_NAME_INFO))) {
             std::wstring name(pNameInfo->FileName, pNameInfo->FileNameLength);
-            if ((name.find(L"msys-") == std::wstring::npos &&
-                 name.find(L"cygwin-") == std::wstring::npos) ||
-                  name.find(L"-pty") == std::wstring::npos) {
+            if ((name.find(L"msys-") == std::wstring::npos
+                 && name.find(L"cygwin-") == std::wstring::npos)
+                || name.find(L"-pty") == std::wstring::npos) {
                 return false;
             }
         } else {
@@ -219,10 +216,6 @@ namespace rang_implementation {
 
         return true;
     }
-
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 
 #endif
 
