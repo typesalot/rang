@@ -207,9 +207,10 @@ namespace rang_implementation {
         // {"cygwin-","msys-"}XXXXXXXXXXXXXXX-ptyX-XX
         if (ptrGetFileInformationByHandleEx(h, FileNameInfo, pNameInfo.get(),
                                            sizeof(MY_FILE_NAME_INFO))) {
-            PWSTR name = pNameInfo->FileName;
-            if ((!wcsstr(name, L"msys-") && !wcsstr(name, L"cygwin-"))
-                || !wcsstr(name, L"-pty")) {
+            std::wstring name(pNameInfo->FileName, pNameInfo->FileNameLength);
+            if ((name.find(L"msys-") == std::wstring::npos &&
+                 name.find(L"cygwin-") == std::wstring::npos) ||
+                  name.find(L"-pty") == std::wstring::npos) {
                 return false;
             }
         } else {
