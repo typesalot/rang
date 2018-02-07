@@ -200,7 +200,7 @@ namespace rang_implementation {
         // Check pipe name is template of
         // {"cygwin-","msys-"}XXXXXXXXXXXXXXX-ptyX-XX
         if (ptrGetFileInformationByHandleEx(h, FileNameInfo, pNameInfo.get(), sizeNameInfo)) {
-            std::wstring name(pNameInfo->FileName, pNameInfo->FileNameLength);
+            std::wstring name(pNameInfo->FileName, pNameInfo->FileNameLength / sizeof(WCHAR));
             if ((name.find(L"msys-") == std::wstring::npos
                  && name.find(L"cygwin-") == std::wstring::npos)
                 || name.find(L"-pty") == std::wstring::npos) {
