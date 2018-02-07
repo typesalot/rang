@@ -165,7 +165,6 @@ namespace rang_implementation {
 
 #ifdef OS_WIN
 
-
     inline bool isMsysPty(int fd) noexcept
     {
         // Dynamic load for binary compability with old Windows
@@ -187,23 +186,20 @@ namespace rang_implementation {
             return false;
         }
 
-        // POD type is binary compatible with FILE_NAME_INFO from WinBase.h
-        // It have the same alignment and used to avoid UB in caller code
-        struct MY_FILE_NAME_INFO {
-            DWORD FileNameLength;
-            WCHAR FileName[MAX_PATH];
-        };
+        // See 'Struct Hack' C API for more information
+        const size_t sizeNameInfo = sizeof(FILE_NAME_INFO) + sizeof(WCHAR) * MAX_PATH;
 
-        auto pNameInfo = std::unique_ptr<MY_FILE_NAME_INFO>(
-          new (std::nothrow) MY_FILE_NAME_INFO());
+        // std::malloc returns an aligned address with alignment at least as strict as max_align_t.
+        auto pNameInfo = std::unique_ptr<FILE_NAME_INFO, decltype(&std::free)>(
+            static_cast<FILE_NAME_INFO*>(std::malloc(sizeNameInfo)), &std::free);
+
         if (!pNameInfo) {
             return false;
         }
 
         // Check pipe name is template of
         // {"cygwin-","msys-"}XXXXXXXXXXXXXXX-ptyX-XX
-        if (ptrGetFileInformationByHandleEx(h, FileNameInfo, pNameInfo.get(),
-                                            sizeof(MY_FILE_NAME_INFO))) {
+        if (ptrGetFileInformationByHandleEx(h, FileNameInfo, pNameInfo.get(), sizeNameInfo)) {
             std::wstring name(pNameInfo->FileName, pNameInfo->FileNameLength);
             if ((name.find(L"msys-") == std::wstring::npos
                  && name.find(L"cygwin-") == std::wstring::npos)
