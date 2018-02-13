@@ -165,53 +165,59 @@ namespace rang_implementation {
 
 #ifdef OS_WIN
 
-    inline bool isMsysPty(int fd) noexcept
-    {
-        // Dynamic load for binary compability with old Windows
-        const auto ptrGetFileInformationByHandleEx
-          = reinterpret_cast<decltype(&GetFileInformationByHandleEx)>(
-            GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")),
-                           "GetFileInformationByHandleEx"));
-        if (!ptrGetFileInformationByHandleEx) {
-            return false;
-        }
-
-        HANDLE h = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
-        if (h == INVALID_HANDLE_VALUE) {
-            return false;
-        }
-
-        // Check that it's a pipe:
-        if (GetFileType(h) != FILE_TYPE_PIPE) {
-            return false;
-        }
-
-        // See 'Struct Hack' C API for more information
-        const size_t sizeNameInfo = sizeof(FILE_NAME_INFO) + sizeof(WCHAR) * MAX_PATH;
-
-        // std::malloc returns an aligned address with alignment at least as strict as max_align_t.
-        auto pNameInfo = std::unique_ptr<FILE_NAME_INFO, decltype(&std::free)>(
-            static_cast<FILE_NAME_INFO*>(std::malloc(sizeNameInfo)), &std::free);
-
-        if (!pNameInfo) {
-            return false;
-        }
-
-        // Check pipe name is template of
-        // {"cygwin-","msys-"}XXXXXXXXXXXXXXX-ptyX-XX
-        if (ptrGetFileInformationByHandleEx(h, FileNameInfo, pNameInfo.get(), sizeNameInfo)) {
-            std::wstring name(pNameInfo->FileName, pNameInfo->FileNameLength / sizeof(WCHAR));
-            if ((name.find(L"msys-") == std::wstring::npos
-                 && name.find(L"cygwin-") == std::wstring::npos)
-                || name.find(L"-pty") == std::wstring::npos) {
-                return false;
-            }
-        } else {
-            return false;
-        }
-
-        return true;
+inline bool isMsysPty(int fd) noexcept
+{
+    // Dynamic load for binary compability with old Windows
+    const auto ptrGetFileInformationByHandleEx
+      = reinterpret_cast<decltype(&GetFileInformationByHandleEx)>(
+        GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")),
+                       "GetFileInformationByHandleEx"));
+    if (!ptrGetFileInformationByHandleEx) {
+        return false;
     }
+
+    HANDLE h = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
+    if (h == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+
+    // Check that it's a pipe:
+    if (GetFileType(h) != FILE_TYPE_PIPE) {
+        return false;
+    }
+
+    // See 'Struct Hack' C API for more information
+    const size_t sizeNameInfo = sizeof(FILE_NAME_INFO) + sizeof(WCHAR) * MAX_PATH;
+
+    // std::malloc returns an aligned address with alignment at least as strict as max_align_t.
+    auto pNameInfo = std::unique_ptr<FILE_NAME_INFO, decltype(&std::free)>(
+        static_cast<FILE_NAME_INFO*>(std::malloc(sizeNameInfo)), &std::free);
+
+    if (!pNameInfo) {
+        return false;
+    }
+    
+    // Using 'placement new' to initialize object been used:
+    new (pNameInfo.get()) FILE_NAME_INFO();
+    // Manually initialize last member FileName:
+    std::uninitialized_fill(pNameInfo->FileName,pNameInfo->FileName + 
+                            (sizeNameInfo - offsetof(FILE_NAME_INFO,FileName)) 
+                                    / sizeof(WCHAR),WCHAR());
+
+    // Check pipe name is template of
+    // {"cygwin-","msys-"}XXXXXXXXXXXXXXX-ptyX-XX
+    if (!ptrGetFileInformationByHandleEx(h, FileNameInfo, pNameInfo.get(), sizeNameInfo)) {
+        return false;
+    }
+    std::wstring name(pNameInfo->FileName, pNameInfo->FileNameLength / sizeof(WCHAR));
+    if ((name.find(L"msys-") == std::wstring::npos
+         && name.find(L"cygwin-") == std::wstring::npos)
+        || name.find(L"-pty") == std::wstring::npos) {
+        return false;
+    }
+
+    return true;
+}
 
 #endif
 
