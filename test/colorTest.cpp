@@ -4,7 +4,7 @@
 using namespace std;
 using namespace rang;
 
-void printHeading(string heading)
+void printHeading(string &heading)
 {
     cout << '\n'
          << style::reset << heading << style::reset << bg::reset << fg::reset
