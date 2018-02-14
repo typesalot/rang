@@ -39,16 +39,12 @@ Installation
 
 Or, if you use the [conan package manager](https://www.conan.io/), follow these steps:
 
-1. Add *rang* to the conan remotes:
-
-        conan remote add rang https://api.bintray.com/conan/agauniyal/rang
-
-2. Add a reference to *rang* to the *requires* section of your project's `conanfile.txt` file:
+1. Add a reference to *rang* to the *requires* section of your project's `conanfile.txt` file:
 
         [requires]
-        rang/3.0.0@rang/stable
+        rang/3.1.0@rang/stable
 
-3. Run conan's install command:
+2. Run conan's install command:
 
         conan install
 
@@ -56,6 +52,8 @@ Or, if you use the [conan package manager](https://www.conan.io/), follow these 
 ## How to use
 
 *Rang* uses iostream objects - `cout`/`clog`/`cerr` to apply attributes to output text. Since *rang* aims to support both windows and unix like systems, it takes care of the os specific details and tries to provide a uniform interface. Due to incompatiblities b/w different OS versions, not all kinds of attributes are supported on every system so rang will try to skip the ones which might produce garbage(instead of pushing random ANSI escape codes on your streams). Detection of tty is also handled internally so you don't need to check if application user might redirect output to a file.
+
+> **Need support for non-ansi terminals? Check out [Termdb](https://github.com/agauniyal/termdb) which supports virtually all terminals and their capablities.**
 
 Apart from setting text attributes, you can also ask rang to override its default behaviour through these methods -
 ```cpp

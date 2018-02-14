@@ -3,7 +3,7 @@ from conans import ConanFile, Meson
 
 class RangConan(ConanFile):
     name = "rang"
-    version = "3.0.0"
+    version = "3.1.0"
     license = "The Unlicense"
     url = "https://github.com/agauniyal/rang"
     description = "A Minimal, Header only Modern c++ library for colors in your terminal"
