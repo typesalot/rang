@@ -82,8 +82,8 @@ Supported attributes with their compatiblity are listed below -
 | `rang::style::bold`      | yes   | yes   |
 | `rang::style::dim`       | yes   | no    |
 | `rang::style::italic`    | yes   | no    |
-| `rang::style::underline` | yes   | maybe |
-| `rang::style::blink`     | no    | maybe |
+| `rang::style::underline` | yes   | no    |
+| `rang::style::blink`     | no    | no    |
 | `rang::style::rblink`    | no    | no    |
 | `rang::style::reversed`  | yes   | yes   |
 | `rang::style::conceal`   | maybe | yes   |
