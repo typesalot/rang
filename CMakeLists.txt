@@ -31,7 +31,7 @@ set(CONFIG_PACKAGE_BUILD_LOCATION   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}
 set(CONFIG_PACKAGE_INSTALL_LOCATION "lib/cmake/${PROJECT_NAME}")
 write_basic_package_version_file (
     "${CONFIG_PACKAGE_BUILD_LOCATION}/${PROJECT_NAME}ConfigVersion.cmake"
-    VERSION 3.1.0
+    VERSION 3.2.0
     COMPATIBILITY AnyNewerVersion
 )
 export(
