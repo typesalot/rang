@@ -1,60 +1,80 @@
-cmake_minimum_required (VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 
-project (rang)
+project(rang 
+    VERSION 3.2.0
+    LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include(cmake/CMakeUtilities.cmake)
+include(GNUInstallDirs)
+set_verbose(RANG_INC_DIR ${CMAKE_INSTALL_INCLUDEDIR} CACHE STRING
+    "Installation directory for include files, a relative path that "
+    "will be joined with ${CMAKE_INSTALL_PREFIX} or an absolute path.")
+
+set(RANG_HEADERS include/rang.hpp)
 
 add_library(${PROJECT_NAME} INTERFACE)
-target_include_directories(${PROJECT_NAME} INTERFACE
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>" # <prefix>/include
-)
 
-install(
-    FILES       "include/rang.hpp"
-    DESTINATION "include"
-)
-
-# Usage in CMake projects:
-#
-#   set(CMAKE_CXX_STANDARD          11)
-#   set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#   set(CMAKE_CXX_EXTENSIONS        OFF)
-#
-#   set(rang_DIR "path/to/rangConfig.cmake/dir" CACHE PATH "Directory containing rangConfig.cmake")
-#   find_package(rang REQUIRED CONFIG [NO_DEFAULT_PATH])
-#
-#   add_executable(some_app some_app_source.cpp)
-#   target_link_libraries(some_app rang)
-install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets)
+target_include_directories(rang INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${RANG_INC_DIR}>
+  )
 
 include(CMakePackageConfigHelpers)
-set(CONFIG_PACKAGE_BUILD_LOCATION   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}")
-set(CONFIG_PACKAGE_INSTALL_LOCATION "lib/cmake/${PROJECT_NAME}")
-write_basic_package_version_file (
-    "${CONFIG_PACKAGE_BUILD_LOCATION}/${PROJECT_NAME}ConfigVersion.cmake"
-    VERSION 3.2.0
-    COMPATIBILITY AnyNewerVersion
-)
-export(
-    EXPORT ${PROJECT_NAME}Targets
-    FILE "${CONFIG_PACKAGE_BUILD_LOCATION}/${PROJECT_NAME}Targets.cmake"
-    #NAMESPACE ${PROJECT_NAME}::
-)
-configure_file(
-    "cmake/Config.cmake.in"
-    "${CONFIG_PACKAGE_BUILD_LOCATION}/${PROJECT_NAME}Config.cmake"
-    @ONLY
-)
-install(
-    EXPORT      "${PROJECT_NAME}Targets"
-    FILE        "${PROJECT_NAME}Targets.cmake"
-    #NAMESPACE   ${PROJECT_NAME}::
-    DESTINATION "${CONFIG_PACKAGE_INSTALL_LOCATION}"
-)
-install(
-    FILES
-    "${CONFIG_PACKAGE_BUILD_LOCATION}/${PROJECT_NAME}Config.cmake"
-    "${CONFIG_PACKAGE_BUILD_LOCATION}/${PROJECT_NAME}ConfigVersion.cmake"
-    DESTINATION "${CONFIG_PACKAGE_INSTALL_LOCATION}"
-)
 
-add_subdirectory(test)
+set_verbose(RANG_CMAKE_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/rang CACHE STRING
+  "Installation directory for cmake files, a relative path that "
+  "will be joined with ${CMAKE_INSTALL_PREFIX} or an absolute "
+  "path.")
+set(version_config ${PROJECT_BINARY_DIR}/rang-config-version.cmake)
+set(project_config ${PROJECT_BINARY_DIR}/rang-config.cmake)
+set(pkgconfig ${PROJECT_BINARY_DIR}/rang.pc)
+set(targets_export_name rang-targets)
+
+set_verbose(RANG_PKGCONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/pkgconfig CACHE PATH
+  "Installation directory for pkgconfig (.pc) files, a relative "
+  "path that will be joined with ${CMAKE_INSTALL_PREFIX} or an "
+  "absolute path.")
+
+write_basic_package_version_file(
+    ${version_config}
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+    )
+
+join_paths(includedir_for_pc_file "\${prefix}" "${RANG_INC_DIR}")
+
+# Configure the PkgConfig
+configure_file(
+    "${PROJECT_SOURCE_DIR}/cmake/rang.pc.in"
+    "${pkgconfig}"
+    @ONLY
+    )
+
+# Configuring the CMake Installer Helper
+configure_package_config_file(
+    ${PROJECT_SOURCE_DIR}/cmake/rang-config.cmake.in
+    ${project_config}
+    INSTALL_DESTINATION ${RANG_CMAKE_DIR}
+    )
+
+set(INSTALL_TARGETS rang)
+
+# Use a namespace because CMake provides better diagnostics for namespaced
+# imported targets.
+export(TARGETS ${INSTALL_TARGETS} NAMESPACE rang::
+    FILE ${PROJECT_BINARY_DIR}/${targets_export_name}.cmake
+    )
+
+# Install version, config and target files.
+install(
+    FILES ${project_config} ${version_config}
+    DESTINATION ${RANG_CMAKE_DIR}
+    )
+
+install(FILES ${RANG_HEADERS} DESTINATION "${RANG_INC_DIR}")
+install(FILES "${pkgconfig}" DESTINATION "${RANG_PKGCONFIG_DIR}")
+
+
