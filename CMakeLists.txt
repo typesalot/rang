@@ -77,11 +77,10 @@ install(
     FILES ${project_config} ${version_config}
     DESTINATION ${RANG_CMAKE_DIR}
     )
+
 install(EXPORT ${targets_export_name}
     DESTINATION ${RANG_CMAKE_DIR}
     NAMESPACE rang::)
 
 install(FILES ${RANG_HEADERS} DESTINATION "${RANG_INC_DIR}")
 install(FILES "${pkgconfig}" DESTINATION "${RANG_PKGCONFIG_DIR}")
-
-
