@@ -62,6 +62,10 @@ configure_package_config_file(
 
 set(INSTALL_TARGETS rang)
 
+# Install the library and headers.
+install(TARGETS ${INSTALL_TARGETS} EXPORT ${targets_export_name}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
 # Use a namespace because CMake provides better diagnostics for namespaced
 # imported targets.
 export(TARGETS ${INSTALL_TARGETS} NAMESPACE rang::
@@ -74,7 +78,9 @@ install(
     DESTINATION ${RANG_CMAKE_DIR}
     )
 
+install(EXPORT ${targets_export_name}
+    DESTINATION ${RANG_CMAKE_DIR}
+    NAMESPACE rang::)
+
 install(FILES ${RANG_HEADERS} DESTINATION "${RANG_INC_DIR}")
 install(FILES "${pkgconfig}" DESTINATION "${RANG_PKGCONFIG_DIR}")
-
-
