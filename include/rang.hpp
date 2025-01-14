@@ -405,21 +405,20 @@ namespace rang_implementation {
         WORD attrib = 0;
         if (state.conceal) {
             if (state.inverse) {
-                attrib = (state.fgColor << 4) | state.fgColor;
+                attrib = static_cast<WORD>((state.fgColor << 4) | state.fgColor);
                 if (state.bold)
                     attrib |= FOREGROUND_INTENSITY | BACKGROUND_INTENSITY;
             } else {
-                attrib = (state.bgColor << 4) | state.bgColor;
+                attrib = static_cast<WORD>((state.bgColor << 4) | state.bgColor);
                 if (state.underline)
                     attrib |= FOREGROUND_INTENSITY | BACKGROUND_INTENSITY;
             }
         } else if (state.inverse) {
-            attrib = (state.fgColor << 4) | state.bgColor;
+            attrib = static_cast<WORD>((state.fgColor << 4) | state.bgColor);
             if (state.bold) attrib |= BACKGROUND_INTENSITY;
             if (state.underline) attrib |= FOREGROUND_INTENSITY;
         } else {
-            attrib = state.fgColor | (state.bgColor << 4) | state.bold
-              | state.underline;
+            attrib = static_cast<WORD>(state.fgColor | (state.bgColor << 4) | state.bold | state.underline);
         }
         return attrib;
     }
